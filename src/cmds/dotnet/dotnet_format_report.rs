@@ -45,6 +45,13 @@ pub struct FormatSummary {
 }
 
 pub fn parse_format_report(path: &Path) -> Result<FormatSummary> {
+    // Prevent path traversal attacks by rejecting paths containing '..'.
+    if path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", path.display());
+    }
     let file = File::open(path)
         .with_context(|| format!("Failed to read dotnet format report at {}", path.display()))?;
     let reader = BufReader::new(file);

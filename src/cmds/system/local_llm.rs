@@ -13,6 +13,14 @@ pub fn run(file: &Path, _model: &str, _force_download: bool, verbose: u8) -> Res
         eprintln!("Analyzing: {}", file.display());
     }
 
+    // Prevent path traversal attacks by rejecting paths containing '..'.
+    if file
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", file.display());
+    }
+
     let content = fs::read_to_string(file)
         .with_context(|| format!("Failed to read file: {}", file.display()))?;
 
