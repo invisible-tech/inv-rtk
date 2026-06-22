@@ -52,7 +52,14 @@ pub fn format_console_report(
 }
 
 pub fn write_rules_file(rules: &[CorrectionRule], path: &str) -> Result<()> {
+    // Prevent path traversal attacks by rejecting paths containing '..'.
     let path_obj = Path::new(path);
+    if path_obj
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        return Err(anyhow::anyhow!("Invalid input: {}", path_obj.display()));
+    }
 
     // Create parent directory if it doesn't exist
     if let Some(parent) = path_obj.parent() {

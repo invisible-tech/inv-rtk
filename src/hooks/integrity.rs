@@ -38,6 +38,13 @@ pub enum IntegrityStatus {
 
 /// Compute SHA-256 hash of a file, returned as lowercase hex
 pub fn compute_hash(path: &Path) -> Result<String> {
+    // Prevent path traversal attacks by rejecting paths containing '..'
+    if path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", path.display());
+    }
     let content =
         fs::read(path).with_context(|| format!("Failed to read file: {}", path.display()))?;
     let mut hasher = Sha256::new();

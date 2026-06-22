@@ -286,6 +286,13 @@ struct ParsedEventFields {
 }
 
 fn parse_events_from_binlog(path: &Path) -> Result<ParsedBinlog> {
+    // Prevent path traversal attacks by rejecting paths containing '..'.
+    if path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", path.display());
+    }
     let bytes = std::fs::read(path)
         .with_context(|| format!("Failed to read binlog at {}", path.display()))?;
     if bytes.is_empty() {

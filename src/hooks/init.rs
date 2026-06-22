@@ -342,6 +342,13 @@ pub fn run(
 /// When `dry_run` is true, prints the intended action and does not touch the filesystem.
 fn write_if_changed(path: &Path, content: &str, name: &str, ctx: InitContext) -> Result<bool> {
     let InitContext { verbose, dry_run } = ctx;
+    // Prevent path traversal attacks by rejecting paths containing '..'.
+    if path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", path.display());
+    }
     if path.exists() {
         let existing = fs::read_to_string(path)
             .with_context(|| format!("Failed to read {}: {}", name, path.display()))?;
