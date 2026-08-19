@@ -1793,6 +1793,13 @@ fn run_hermes_mode_at(hermes_home: &Path, ctx: InitContext) -> Result<()> {
     )?;
 
     let config_path = hermes_home.join("config.yaml");
+    // Prevent path traversal attacks by rejecting paths containing '..'.
+    if config_path
+        .components()
+        .any(|c| c == std::path::Component::ParentDir)
+    {
+        anyhow::bail!("Invalid input: {}", config_path.display());
+    }
     let existing_config = if config_path.exists() {
         fs::read_to_string(&config_path)
             .with_context(|| format!("Failed to read Hermes config: {}", config_path.display()))?
