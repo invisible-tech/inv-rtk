@@ -9,7 +9,7 @@
  * Rust registry, not this file.
  */
 
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 
 let rtkAvailable: boolean | null = null;
 
@@ -26,7 +26,7 @@ function checkRtk(): boolean {
 
 function tryRewrite(command: string): string | null {
   try {
-    const result = execSync(`rtk rewrite ${JSON.stringify(command)}`, {
+    const result = execFileSync("rtk", ["rewrite", JSON.stringify(command)], {
       encoding: "utf-8",
       timeout: 2000,
     }).trim();
